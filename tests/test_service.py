@@ -7,10 +7,10 @@ from .service import MyInput, TestServiceHandler, mcp_service
 def test_tools_added_to_list() -> None:
     """Test that decorated functions are added to the tools list."""
 
-    assert len(mcp_service.tool_services) == 1
-    assert len(mcp_service.tool_services[0].tools) == 2
-    assert mcp_service.tool_services[0].tools[0].func == TestServiceHandler.op1
-    assert mcp_service.tool_services[0].tools[1].func == TestServiceHandler.op2
+    assert len(mcp_service._tool_services) == 1
+    assert len(mcp_service._tool_services[0].tools) == 2
+    assert mcp_service._tool_services[0].tools[0].func == TestServiceHandler.op1
+    assert mcp_service._tool_services[0].tools[1].func == TestServiceHandler.op2
 
 
 @pytest.mark.asyncio

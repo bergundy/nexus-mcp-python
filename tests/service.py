@@ -23,7 +23,7 @@ class TestService:
 mcp_service = MCPServiceHandler()
 
 
-@mcp_service.tool_service
+@mcp_service.register
 @service_handler(service=TestService)
 class TestServiceHandler:
     # @nexus.workflow_run_operation

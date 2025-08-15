@@ -11,7 +11,7 @@ from temporalio.api.operatorservice.v1 import CreateNexusEndpointRequest
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
-from nexusmcp import NexusMCPInboundGateway
+from nexusmcp import InboundGateway
 
 from .service import TestServiceHandler, mcp_service
 
@@ -37,7 +37,7 @@ async def test_inbound_gateway() -> None:
                 )
             )
         )
-        gateway = NexusMCPInboundGateway(env.client, endpoint_name)
+        gateway = InboundGateway(env.client, endpoint_name)
         gateway.register(server)
 
         worker = Worker(
