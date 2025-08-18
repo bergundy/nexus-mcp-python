@@ -121,12 +121,17 @@ temporal operator nexus endpoint create \
 import asyncio
 
 from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
 from .service_handler import mcp_service_handler, CalculatorHandler
 
 async def main():
     # Connect to Temporal (replace host and namespace as needed).
-    client = await Client.connect("localhost:7233", namespace="my-handler-namespace")
+    client = await Client.connect(
+        "localhost:7233",
+        namespace="my-handler-namespace",
+        data_converter=pydantic_data_converter,
+    )
 
     async with Worker(
         client,
@@ -144,12 +149,17 @@ import asyncio
 from mcp.server.lowlevel import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
 from nexusmcp import InboundGateway
 
 async def main():
     server = Server("nexus-mcp-demo")
     # Connect to Temporal (replace host and namespace as needed).
-    client = await Client.connect("localhost:7233", namespace="my-caller-namespace")
+    client = await Client.connect(
+        "localhost:7233",
+        namespace="my-caller-namespace",
+        data_converter=pydantic_data_converter,
+    )
 
     # Create the MCP gateway
     gateway = InboundGateway(
