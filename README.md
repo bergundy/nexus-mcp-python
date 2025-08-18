@@ -99,7 +99,7 @@ class CalculatorHandler:
         return CalculateResponse(result=result)
 ```
 
-### 4. Create a Nexus namespace and endpoint
+### 4. Create a namespace and Nexus endpoint
 
 **Local dev or self hosted deployment**
 
@@ -143,6 +143,10 @@ async def main():
 ```
 
 ### 4. Set Up the MCP Gateway
+
+```bash
+temporal operator namespace create --namespace my-caller-namespace
+```
 
 ```python
 import asyncio
@@ -191,7 +195,7 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 }
 ```
 
-### 6. Make MCP calls from a Temporal workflow
+### 6. Make MCP calls from a Temporal Workflow
 
 ```python
 import asyncio
