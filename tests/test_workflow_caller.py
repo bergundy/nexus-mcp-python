@@ -10,7 +10,7 @@ from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
-from nexusmcp.nexus_transport import NexusTransport
+from nexusmcp.nexus_transport import WorkflowNexusTransport
 
 from .service import TestServiceHandler, mcp_service
 
@@ -24,7 +24,7 @@ class MCPCallerWorkflowInput:
 class MCPCallerWorkflow:
     @workflow.run
     async def run(self, input: MCPCallerWorkflowInput) -> None:
-        transport = NexusTransport(input.endpoint)
+        transport = WorkflowNexusTransport(input.endpoint)
         async with transport.connect() as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()

@@ -11,7 +11,23 @@ from temporalio import workflow
 from .service import MCPService
 
 
-class NexusTransport:
+class WorkflowNexusTransport:
+    """
+    Nexus MCP Transport for use in Temporal workflows.
+
+    This class provides a transport that proxies MCP requests to a Temporal Nexus service. It can be
+    used to make MCP calls via `mcp.ClientSession` from Temporal workflow code.
+
+    Example:
+        ```python
+        async with WorkflowNexusTransport("my-endpoint") as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                await session.list_tools()
+                await session.call_tool("my-service/my-operation", {"arg": "value"})
+        ```
+    """
+
     def __init__(
         self,
         endpoint: str,
