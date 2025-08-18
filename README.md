@@ -166,7 +166,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### 4. Configure Your MCP Client
+### 5. Configure Your MCP Client
 
 Add to your MCP client configuration (e.g., Claude Desktop):
 
@@ -179,6 +179,56 @@ Add to your MCP client configuration (e.g., Claude Desktop):
     }
   }
 }
+```
+
+### 6. Make MCP calls from a Temporal workflow
+
+```python
+import asyncio
+import uuid
+
+from mcp import ClientSession
+from nexusmcp import WorkflowNexusTransport
+from pydantic import BaseModel
+from temporalio import workflow
+from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
+from temporalio.worker import Worker
+
+
+class AgentWorkflowInput(BaseModel):
+    endpoint: str
+
+
+@workflow.defn(sandboxed=False)
+class AgentWorkflow:
+    @workflow.run
+    async def run(self, input: AgentWorkflowInput):
+        transport = WorkflowNexusTransport(input.endpoint)
+        async with transport.connect() as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                list_tools_result = await session.list_tools()
+                print(f"available tools: {list_tools_result}")
+
+
+async def main():
+    client = await Client.connect(
+        "localhost:7233",
+        data_converter=pydantic_data_converter,
+    )
+
+    async with Worker(
+        client,
+        task_queue="agent-workflow",
+        workflows=[AgentWorkflow],
+    ) as worker:
+        await client.execute_workflow(
+            AgentWorkflow.run,
+            AgentWorkflowInput(endpoint="mcp-gateway"),
+            id=str(uuid.uuid4()),
+            task_queue=worker.task_queue,
+        )
 ```
 
 ## Usage Examples
