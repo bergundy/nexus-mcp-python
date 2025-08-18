@@ -51,6 +51,7 @@ class WorkflowTransport:
                 async for session_message in transport_read:
                     request = session_message.message.root
                     if not isinstance(request, types.JSONRPCRequest):
+                        # Ignore e.g. types.JSONRPCNotification
                         continue
                     result: types.Result | types.ErrorData
                     try:
