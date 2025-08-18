@@ -200,6 +200,7 @@ class AgentWorkflowInput(BaseModel):
     endpoint: str
 
 
+# The workflow must have the sandbox disabled
 @workflow.defn(sandboxed=False)
 class AgentWorkflow:
     @workflow.run
