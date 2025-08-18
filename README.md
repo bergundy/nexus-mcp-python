@@ -99,11 +99,12 @@ class CalculatorHandler:
         return CalculateResponse(result=result)
 ```
 
-### 4. Create a Nexus endpoint
+### 4. Create a Nexus namespace and endpoint
 
 **Local dev or self hosted deployment**
 
 ```bash
+temporal operator namespace create --namespace my-handler-namespace
 temporal operator nexus endpoint create \
   --name mcp-gateway \
   --target-namespace my-handler-namespace \
@@ -117,6 +118,8 @@ temporal operator nexus endpoint create \
 ### 3. Set Up the Temporal Worker with the Nexus handlers at `worker.py`
 
 ```python
+import asyncio
+
 from temporalio.client import Client
 from temporalio.worker import Worker
 from .service_handler import mcp_service_handler, CalculatorHandler
