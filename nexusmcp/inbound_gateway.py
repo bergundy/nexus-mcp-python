@@ -29,7 +29,7 @@ class InboundGateway:
 
     This gateway acts as an adapter between the Model Context Protocol (MCP) server and Temporal Nexus Operations,
     enabling tool calls to be executed reliably through Temporal's workflow engine. It handles both tool listing and
-    tool call requests by delegating them to corresponding a set of Temporal Nexus Services in a given endpoint.
+    tool call requests by delegating them to a corresponding set of Temporal Nexus Services in a given endpoint.
     """
 
     _client: Client
@@ -93,7 +93,7 @@ class InboundGateway:
                 {"a": 5, "b": 3}
             )
         """
-        service, operation = name.split("/", maxsplit=1)
+        service, _, operation = name.partition("/")
         if not service or not operation:
             raise ValueError(f"Invalid tool name: {name}, must be in the format 'service/operation'")
         return await self._client.execute_workflow(

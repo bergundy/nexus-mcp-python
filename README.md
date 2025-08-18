@@ -99,11 +99,12 @@ class CalculatorHandler:
         return CalculateResponse(result=result)
 ```
 
-### 4. Create a Nexus endpoint
+### 4. Create a namespace and Nexus endpoint
 
 **Local dev or self hosted deployment**
 
 ```bash
+temporal operator namespace create --namespace my-handler-namespace
 temporal operator nexus endpoint create \
   --name mcp-gateway \
   --target-namespace my-handler-namespace \
@@ -117,13 +118,20 @@ temporal operator nexus endpoint create \
 ### 3. Set Up the Temporal Worker with the Nexus handlers at `worker.py`
 
 ```python
+import asyncio
+
 from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
 from .service_handler import mcp_service_handler, CalculatorHandler
 
 async def main():
     # Connect to Temporal (replace host and namespace as needed).
-    client = await Client.connect("localhost:7233", namespace="my-handler-namespace")
+    client = await Client.connect(
+        "localhost:7233",
+        namespace="my-handler-namespace",
+        data_converter=pydantic_data_converter,
+    )
 
     async with Worker(
         client,
@@ -136,17 +144,26 @@ async def main():
 
 ### 4. Set Up the MCP Gateway
 
+```bash
+temporal operator namespace create --namespace my-caller-namespace
+```
+
 ```python
 import asyncio
 from mcp.server.lowlevel import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
 from nexusmcp import InboundGateway
 
 async def main():
     server = Server("nexus-mcp-demo")
     # Connect to Temporal (replace host and namespace as needed).
-    client = await Client.connect("localhost:7233", namespace="my-caller-namespace")
+    client = await Client.connect(
+        "localhost:7233",
+        namespace="my-caller-namespace",
+        data_converter=pydantic_data_converter,
+    )
 
     # Create the MCP gateway
     gateway = InboundGateway(
@@ -163,7 +180,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### 4. Configure Your MCP Client
+### 5. Configure Your MCP Client
 
 Add to your MCP client configuration (e.g., Claude Desktop):
 
@@ -176,6 +193,57 @@ Add to your MCP client configuration (e.g., Claude Desktop):
     }
   }
 }
+```
+
+### 6. Make MCP calls from a Temporal Workflow
+
+```python
+import asyncio
+import uuid
+
+from mcp import ClientSession
+from nexusmcp import WorkflowTransport
+from pydantic import BaseModel
+from temporalio import workflow
+from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
+from temporalio.worker import Worker
+
+
+class AgentWorkflowInput(BaseModel):
+    endpoint: str
+
+
+# The workflow must have the sandbox disabled
+@workflow.defn(sandboxed=False)
+class AgentWorkflow:
+    @workflow.run
+    async def run(self, input: AgentWorkflowInput):
+        transport = WorkflowTransport(input.endpoint)
+        async with transport.connect() as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                list_tools_result = await session.list_tools()
+                print(f"available tools: {list_tools_result}")
+
+
+async def main():
+    client = await Client.connect(
+        "localhost:7233",
+        data_converter=pydantic_data_converter,
+    )
+
+    async with Worker(
+        client,
+        task_queue="agent-workflow",
+        workflows=[AgentWorkflow],
+    ) as worker:
+        await client.execute_workflow(
+            AgentWorkflow.run,
+            AgentWorkflowInput(endpoint="mcp-gateway"),
+            id=str(uuid.uuid4()),
+            task_queue=worker.task_queue,
+        )
 ```
 
 ## Usage Examples

@@ -1,13 +1,14 @@
 import asyncio
 
 import anyio
-from mcp.shared.message import SessionMessage
 import pytest
 from mcp import ClientSession
 from mcp.server.lowlevel import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
+from mcp.shared.message import SessionMessage
 from temporalio.api.nexus.v1 import EndpointSpec, EndpointTarget
 from temporalio.api.operatorservice.v1 import CreateNexusEndpointRequest
+from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
@@ -23,7 +24,7 @@ async def test_inbound_gateway() -> None:
     endpoint_name = "endpoint"
     task_queue = "handler-queue"
 
-    async with await WorkflowEnvironment.start_local() as env:
+    async with await WorkflowEnvironment.start_local(data_converter=pydantic_data_converter) as env:
         await env.client.operator_service.create_nexus_endpoint(
             CreateNexusEndpointRequest(
                 spec=EndpointSpec(

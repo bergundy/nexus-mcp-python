@@ -12,7 +12,6 @@ from pydantic import BaseModel
 
 class ToolListInput(BaseModel):
     endpoint: str
-    pass
 
 
 class ToolCallInput(BaseModel):
