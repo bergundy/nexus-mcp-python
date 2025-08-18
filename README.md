@@ -188,7 +188,7 @@ import asyncio
 import uuid
 
 from mcp import ClientSession
-from nexusmcp import WorkflowNexusTransport
+from nexusmcp import WorkflowTransport
 from pydantic import BaseModel
 from temporalio import workflow
 from temporalio.client import Client
@@ -204,7 +204,7 @@ class AgentWorkflowInput(BaseModel):
 class AgentWorkflow:
     @workflow.run
     async def run(self, input: AgentWorkflowInput):
-        transport = WorkflowNexusTransport(input.endpoint)
+        transport = WorkflowTransport(input.endpoint)
         async with transport.connect() as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
