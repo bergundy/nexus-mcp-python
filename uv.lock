@@ -235,7 +235,7 @@ requires-dist = [
     { name = "mcp", specifier = ">=1.13.0" },
     { name = "nexus-rpc", specifier = ">=1.1.0" },
     { name = "pydantic", specifier = ">=2.11.7" },
-    { name = "temporalio", git = "https://github.com/temporalio/sdk-python" },
+    { name = "temporalio", git = "https://github.com/temporalio/sdk-python?branch=dan-9997-python-mcp-nexus" },
 ]
 
 [package.metadata.requires-dev]
@@ -565,7 +565,7 @@ wheels = [
 [[package]]
 name = "temporalio"
 version = "1.15.0"
-source = { git = "https://github.com/temporalio/sdk-python#e1016bcdbdebe613b1123573a839062cfd2ca5a1" }
+source = { git = "https://github.com/temporalio/sdk-python?branch=dan-9997-python-mcp-nexus#a0897ff914d27db6c8955e4955fadc67a5ba1dd9" }
 dependencies = [
     { name = "nexus-rpc" },
     { name = "protobuf" },

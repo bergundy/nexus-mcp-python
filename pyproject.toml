@@ -41,4 +41,4 @@ python_version = "3.13"
 strict = true
 
 [tool.uv.sources]
-temporalio = { git = "https://github.com/temporalio/sdk-python" }
+temporalio = { git = "https://github.com/temporalio/sdk-python", branch = "dan-9997-python-mcp-nexus" }
