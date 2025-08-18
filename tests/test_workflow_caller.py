@@ -20,6 +20,7 @@ class MCPCallerWorkflowInput:
     endpoint: str
 
 
+# TODO: disable sandbox due to use of ThreadLocal by sniffio
 @workflow.defn(sandboxed=False)
 class MCPCallerWorkflow:
     @workflow.run
