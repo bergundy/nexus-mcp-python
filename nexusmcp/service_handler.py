@@ -12,12 +12,17 @@ The main components include:
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
+import re
+import logging
 
 import mcp.types
 import nexusrpc
 import pydantic
 
 from .service import MCPService
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -50,8 +55,18 @@ class _Tool:
         Returns:
             An MCP Tool object ready for use by MCP clients
         """
+        # Generate LLM-compatible tool name using underscores instead of forward slashes
+        tool_name = f"{service.name.lower()}_{self.defn.name}"
+        
+        # Validate tool name meets LLM provider requirements
+        if not _is_valid_tool_name(tool_name):
+            raise ValueError(
+                f"Generated tool name '{tool_name}' does not meet LLM provider requirements. "
+                f"Tool names must match pattern ^[a-zA-Z0-9_-]{{1,128}}$ (letters, numbers, underscores, hyphens only)."
+            )
+        
         return mcp.types.Tool(
-            name=f"{service.name}/{self.defn.name}",
+            name=tool_name,
             description=(self.func.__doc__.strip() if self.func.__doc__ is not None else None),
             inputSchema=(
                 self.defn.input_type.model_json_schema()
@@ -119,9 +134,12 @@ class MCPServiceHandler:
         service_defn = nexusrpc.get_service_definition(cls)
         if service_defn is None:
             raise ValueError(f"Class {cls.__name__} is not a Nexus Service")
-        if "/" in service_defn.name:
+        # Validate service name contains only characters that will create valid tool names
+        if not _is_valid_service_name(service_defn.name):
+            invalid_chars = set(service_defn.name) - set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-')
             raise ValueError(
-                f"Service name {service_defn.name} cannot contain '/' as it is used to separate service and operation names in MCP tools"
+                f"Service name '{service_defn.name}' contains invalid characters {invalid_chars}. "
+                f"Only alphanumeric characters, underscores, and hyphens are allowed for LLM provider compatibility."
             )
 
         tools: list[_Tool] = []
@@ -153,7 +171,9 @@ class MCPServiceHandler:
         Returns:
             List of MCP Tool objects representing all available Operations
         """
-        return [tool.to_mcp_tool(service.defn) for service in self._tool_services for tool in service.tools]
+        tools = [tool.to_mcp_tool(service.defn) for service in self._tool_services for tool in service.tools]
+        logger.info(f"📋 MCP.list_tools found {len(tools)} tools: {[tool.name for tool in tools]}")
+        return tools
 
 
 ExcludedCallable = Callable[..., Any]
@@ -191,3 +211,35 @@ def exclude(fn: ExcludedCallable) -> ExcludedCallable:
     """
     setattr(fn, "__nexus_mcp_tool__", False)
     return fn
+
+
+def _is_valid_tool_name(name: str) -> bool:
+    """Validate tool name against LLM provider requirements.
+    
+    Tool names must match the pattern ^[a-zA-Z0-9_-]{1,128}$ to be compatible
+    with OpenAI, Claude (Anthropic), and Groq function calling APIs.
+    
+    Args:
+        name: The tool name to validate
+        
+    Returns:
+        True if the name is valid, False otherwise
+    """
+    pattern = r'^[a-zA-Z0-9_-]{1,128}$'
+    return bool(re.match(pattern, name))
+
+
+def _is_valid_service_name(name: str) -> bool:
+    """Validate service name for tool naming compatibility.
+    
+    Service names should only contain characters that will result in valid
+    tool names when combined with operation names using underscores.
+    
+    Args:
+        name: The service name to validate
+        
+    Returns:
+        True if the service name is valid, False otherwise
+    """
+    # Allow the same characters as tool names since service names become part of tool names
+    return _is_valid_tool_name(name)
