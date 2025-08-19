@@ -38,8 +38,8 @@ class WorkflowTransport:
         self,
     ) -> AsyncGenerator[
         tuple[
-            anyio.streams.memory.MemoryObjectReceiveStream[SessionMessage],
-            anyio.streams.memory.MemoryObjectSendStream[SessionMessage],
+            anyio.streams.memory.MemoryObjectReceiveStream[SessionMessage],  # pyright: ignore[reportAttributeAccessIssue]
+            anyio.streams.memory.MemoryObjectSendStream[SessionMessage],  # pyright: ignore[reportAttributeAccessIssue]
         ],
         None,
     ]:

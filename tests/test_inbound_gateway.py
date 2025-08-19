@@ -66,8 +66,8 @@ async def test_inbound_gateway() -> None:
 
 
 async def call_tool(
-    read_stream: anyio.streams.memory.MemoryObjectReceiveStream[SessionMessage],
-    write_stream: anyio.streams.memory.MemoryObjectSendStream[SessionMessage],
+    read_stream: anyio.streams.memory.MemoryObjectReceiveStream[SessionMessage],  # pyright: ignore[reportAttributeAccessIssue]
+    write_stream: anyio.streams.memory.MemoryObjectSendStream[SessionMessage],  # pyright: ignore[reportAttributeAccessIssue]
 ) -> None:
     """Test MCP client connecting via memory streams and calling tools."""
     async with ClientSession(read_stream, write_stream) as session:
