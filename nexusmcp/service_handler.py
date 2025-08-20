@@ -174,7 +174,8 @@ class MCPServiceHandler:
             List of MCP Tool objects representing all available Operations
         """
         tools = [tool.to_mcp_tool(service.defn) for service in self._tool_services for tool in service.tools]
-        logger.info(f"MCP.list_tools found {len(tools)} tools: {[tool.name for tool in tools]}")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"MCP.list_tools found {len(tools)} tools: {[tool.name for tool in tools]}")
         return tools
 
 
