@@ -94,12 +94,7 @@ class InboundGateway:
             )
         """
         # Parse tool name in LLM-compatible format: "service_operation"
-        underscore_pos = name.find("_")
-        if underscore_pos == -1:
-            raise ValueError(f"Invalid tool name: {name}, must be in the format 'service_operation'")
-
-        service = name[:underscore_pos]
-        operation = name[underscore_pos + 1 :]
+        service, _, operation = name.partition("_")
 
         if not service or not operation:
             raise ValueError(f"Invalid tool name: {name}, must be in the format 'service_operation'")
