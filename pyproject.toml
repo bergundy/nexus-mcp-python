@@ -14,10 +14,12 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.1.0",
-    "ruff>=0.8.0",
     "mypy>=1.13.0",
+    "poethepoet>=0.35.0",
+    "pyright>=1.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest>=8.4.1",
+    "ruff>=0.8.0",
 ]
 
 [tool.pytest.ini_options]
@@ -40,6 +42,18 @@ indent-style = "space"
 [tool.mypy]
 python_version = "3.13"
 strict = true
+
+[tool.poe.tasks]
+lint = [
+  {cmd = "uv run pyright"},
+  {cmd = "uv run mypy --check-untyped-defs ."},
+  {cmd = "uv run ruff check --select I"},
+  {cmd = "uv run ruff format --check"},
+]
+format = [
+  {cmd = "uv run ruff check --select I --fix"},
+  {cmd = "uv run ruff format"},
+]
 
 [tool.uv.sources]
 temporalio = { git = "https://github.com/temporalio/sdk-python" }

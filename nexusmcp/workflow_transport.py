@@ -38,8 +38,8 @@ class WorkflowTransport:
         self,
     ) -> AsyncGenerator[
         tuple[
-            anyio.streams.memory.MemoryObjectReceiveStream[SessionMessage],
-            anyio.streams.memory.MemoryObjectSendStream[SessionMessage],
+            anyio.streams.memory.MemoryObjectReceiveStream[SessionMessage],  # pyright: ignore[reportAttributeAccessIssue]
+            anyio.streams.memory.MemoryObjectSendStream[SessionMessage],  # pyright: ignore[reportAttributeAccessIssue]
         ],
         None,
     ]:
@@ -119,7 +119,7 @@ class WorkflowTransport:
         return types.ListToolsResult(tools=tools)
 
     async def _handle_call_tool(self, params: types.CallToolRequestParams) -> types.CallToolResult:
-        service, _, operation = params.name.partition("/")
+        service, _, operation = params.name.partition("_")
         nexus_client = workflow.create_nexus_client(
             endpoint=self.endpoint,
             service=service,
