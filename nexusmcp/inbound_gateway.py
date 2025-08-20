@@ -78,24 +78,27 @@ class InboundGateway:
         Handle MCP tool call request by calling the corresponding Nexus Operation in the given endpoint.
 
         Args:
-            name: Tool name in the format "service/operation"
+            name: Tool name in the format "service_operation" (LLM-compatible format)
             arguments: Dictionary of arguments to pass to the tool
 
         Returns:
             Result of the tool call (type depends on the specific tool)
 
         Raises:
-            ValueError: If the tool name format is invalid (missing '/')
+            ValueError: If the tool name format is invalid (missing '_' separator)
 
         Example:
             result = await gateway._handle_call_tool(
-                "calculator/add",
+                "calculator_add",
                 {"a": 5, "b": 3}
             )
         """
-        service, _, operation = name.partition("/")
+        # Parse tool name in LLM-compatible format: "service_operation"
+        service, _, operation = name.partition("_")
+
         if not service or not operation:
-            raise ValueError(f"Invalid tool name: {name}, must be in the format 'service/operation'")
+            raise ValueError(f"Invalid tool name: {name}, must be in the format 'service_operation'")
+
         return await self._client.execute_workflow(
             ToolCallWorkflow.run,
             arg=ToolCallInput(
