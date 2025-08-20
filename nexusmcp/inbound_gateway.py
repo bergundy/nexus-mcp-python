@@ -94,29 +94,16 @@ class InboundGateway:
             )
         """
         # Parse tool name in LLM-compatible format: "service_operation"
-        # Handle MCP client prefixes by finding the actual service_operation pattern
-        
-        # Remove any MCP client prefix (anything before "__" if present)
-        if "__" in name:
-            _, _, actual_name = name.rpartition("__")
-        else:
-            actual_name = name
-            
-        # Find the first underscore in the actual tool name to split service from operation
-        underscore_pos = actual_name.find('_')
+        underscore_pos = name.find("_")
         if underscore_pos == -1:
             raise ValueError(f"Invalid tool name: {name}, must be in the format 'service_operation'")
-        
-        service = actual_name[:underscore_pos]
-        operation = actual_name[underscore_pos + 1:]
-        
+
+        service = name[:underscore_pos]
+        operation = name[underscore_pos + 1 :]
+
         if not service or not operation:
             raise ValueError(f"Invalid tool name: {name}, must be in the format 'service_operation'")
-        
-        # Convert service name back to original casing for Nexus operation lookup
-        # Since we lowercase service names for tool naming, we need to restore original case
-        # This assumes PascalCase service names (Calculator, WeatherService, etc.)
-        service = service.capitalize()
+
         return await self._client.execute_workflow(
             ToolCallWorkflow.run,
             arg=ToolCallInput(
