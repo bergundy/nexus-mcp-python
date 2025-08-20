@@ -33,10 +33,10 @@ class MCPCallerWorkflow:
 
                 list_tools_result = await session.list_tools()
                 assert len(list_tools_result.tools) == 2
-                assert list_tools_result.tools[0].name == "modified-service-name/modified-op-name"
-                assert list_tools_result.tools[1].name == "modified-service-name/op2"
+                assert list_tools_result.tools[0].name == "modified-service-name_modified-op-name"
+                assert list_tools_result.tools[1].name == "modified-service-name_op2"
 
-                call_result = await session.call_tool("modified-service-name/modified-op-name", {"name": "World"})
+                call_result = await session.call_tool("modified-service-name_modified-op-name", {"name": "World"})
                 assert call_result.structuredContent == {"message": "Hello, World"}
 
 

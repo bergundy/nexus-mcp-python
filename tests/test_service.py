@@ -1,6 +1,6 @@
 import pytest
-
 from nexusrpc.handler import StartOperationContext
+
 from .service import MyInput, TestServiceHandler, mcp_service
 
 
@@ -27,8 +27,8 @@ async def test_list_tools() -> None:
         None,
     )
     assert len(tools) == 2
-    assert tools[0].name == "modified-service-name/modified-op-name"
-    assert tools[1].name == "modified-service-name/op2"
+    assert tools[0].name == "modified-service-name_modified-op-name"
+    assert tools[1].name == "modified-service-name_op2"
     assert tools[0].description == "This is a test operation."
     assert tools[1].description == "This is also a test operation."
     assert tools[0].inputSchema == MyInput.model_json_schema()
