@@ -24,6 +24,10 @@ from .service import MCPService
 # Set up logging
 logger = logging.getLogger(__name__)
 
+# Compile regex patterns ahead of time for better performance
+_TOOL_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]{1,64}$")
+_SERVICE_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9-]{1,64}$")
+
 
 @dataclass
 class _Tool:
@@ -137,11 +141,11 @@ class MCPServiceHandler:
         # Validate service name contains only characters that will create valid tool names
         if not _is_valid_service_name(service_defn.name):
             invalid_chars = set(service_defn.name) - set(
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
             )
             raise ValueError(
                 f"Service name '{service_defn.name}' contains invalid characters {invalid_chars}. "
-                f"Only alphanumeric characters, underscores, and hyphens are allowed for LLM provider compatibility."
+                f"Only alphanumeric characters and hyphens are allowed for LLM provider compatibility."
             )
 
         tools: list[_Tool] = []
@@ -229,15 +233,14 @@ def _is_valid_tool_name(name: str) -> bool:
     Returns:
         True if the name is valid, False otherwise
     """
-    pattern = r"^[a-zA-Z0-9_-]{1,64}$"
-    return bool(re.match(pattern, name))
+    return bool(_TOOL_NAME_PATTERN.match(name))
 
 
 def _is_valid_service_name(name: str) -> bool:
     """Validate service name for tool naming compatibility.
 
-    Service names should only contain characters that will result in valid
-    tool names when combined with operation names using underscores.
+    Service names cannot contain underscores as they are used to
+    split service names from operation names when creating tool names.
 
     Args:
         name: The service name to validate
@@ -245,5 +248,5 @@ def _is_valid_service_name(name: str) -> bool:
     Returns:
         True if the service name is valid, False otherwise
     """
-    # Allow the same characters as tool names since service names become part of tool names
-    return _is_valid_tool_name(name)
+    # Service names cannot contain underscores (used as delimiter)
+    return bool(_SERVICE_NAME_PATTERN.match(name))
