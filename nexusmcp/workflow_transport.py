@@ -61,11 +61,21 @@ class WorkflowTransport:
                                     types.InitializeRequestParams.model_validate(request.params)
                                 )
                             case types.JSONRPCRequest(method="tools/list"):
-                                result = await self._handle_list_tools()
+                                tools = await self._handle_list_tools()
+                                result = types.ListToolsResult(tools=tools)
                             case types.JSONRPCRequest(method="tools/call"):
-                                result = await self._handle_call_tool(
-                                    types.CallToolRequestParams.model_validate(request.params)
+                                tool_call_params = types.CallToolRequestParams.model_validate(request.params)
+                                tool_call_result = await self._handle_call_tool(
+                                    tool_call_params.name,
+                                    tool_call_params.arguments or {},
                                 )
+                                if isinstance(tool_call_result, dict):
+                                    result = types.CallToolResult(content=[], structuredContent=tool_call_result)
+                                else:
+                                    result = types.CallToolResult(
+                                        content=[types.TextContent(type="text", text=str(tool_call_result))]
+                                    )
+
                             case _:
                                 result = types.ErrorData(
                                     code=types.METHOD_NOT_FOUND, message=f"Unknown method: {request.method}"
@@ -110,28 +120,20 @@ class WorkflowTransport:
             ),
         )
 
-    async def _handle_list_tools(self) -> types.ListToolsResult:
+    async def _handle_list_tools(self) -> list[types.Tool]:
         nexus_client = workflow.create_nexus_client(
             endpoint=self.endpoint,
             service=MCPService,
         )
-        tools = await nexus_client.execute_operation(MCPService.list_tools, None)
-        return types.ListToolsResult(tools=tools)
+        return await nexus_client.execute_operation(MCPService.list_tools, None)
 
-    async def _handle_call_tool(self, params: types.CallToolRequestParams) -> types.CallToolResult:
-        service, _, operation = params.name.partition("_")
+    async def _handle_call_tool(self, name: str, arguments: dict[str, Any]) -> Any:
+        service, _, operation = name.partition("_")
         nexus_client = workflow.create_nexus_client(
             endpoint=self.endpoint,
             service=service,
         )
-        result: Any = await nexus_client.execute_operation(
-            operation,
-            params.arguments or {},
-        )
-        if isinstance(result, dict):
-            return types.CallToolResult(content=[], structuredContent=result)
-        else:
-            return types.CallToolResult(content=[types.TextContent(type="text", text=str(result))])
+        return await nexus_client.execute_operation(operation, arguments)
 
     def _json_rpc_error_response(self, request: types.JSONRPCRequest, error: types.ErrorData) -> types.JSONRPCResponse:
         return types.JSONRPCResponse.model_validate(
