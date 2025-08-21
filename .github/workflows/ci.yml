@@ -31,10 +31,4 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest --cov=nexusmcp --cov-report=html:coverage_html_report
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-html-report-${{ matrix.os }}-${{ matrix.python-version }}
-          path: coverage_html_report/
+          uv run pytest
