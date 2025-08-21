@@ -2,7 +2,6 @@ import uuid
 from dataclasses import dataclass
 
 import pytest
-from mcp import ClientSession
 from temporalio import workflow
 from temporalio.api.nexus.v1 import EndpointSpec, EndpointTarget
 from temporalio.api.operatorservice.v1 import CreateNexusEndpointRequest
@@ -10,7 +9,7 @@ from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
-from nexusmcp import WorkflowTransport
+import nexusmcp.workflow
 
 from .service import TestServiceHandler, mcp_service
 
@@ -26,18 +25,15 @@ class MCPCallerWorkflowInput:
 class MCPCallerWorkflow:
     @workflow.run
     async def run(self, input: MCPCallerWorkflowInput) -> None:
-        transport = WorkflowTransport(input.endpoint)
-        async with transport.connect() as (read_stream, write_stream):
-            async with ClientSession(read_stream, write_stream) as session:
-                await session.initialize()
+        async with nexusmcp.workflow.MCPClient(input.endpoint).connect() as session:
+            # Session is already initialized
+            list_tools_result = await session.list_tools()
+            assert len(list_tools_result.tools) == 2
+            assert list_tools_result.tools[0].name == "modified-service-name_modified-op-name"
+            assert list_tools_result.tools[1].name == "modified-service-name_op2"
 
-                list_tools_result = await session.list_tools()
-                assert len(list_tools_result.tools) == 2
-                assert list_tools_result.tools[0].name == "modified-service-name/modified-op-name"
-                assert list_tools_result.tools[1].name == "modified-service-name/op2"
-
-                call_result = await session.call_tool("modified-service-name/modified-op-name", {"name": "World"})
-                assert call_result.structuredContent == {"message": "Hello, World"}
+            call_result = await session.call_tool("modified-service-name_modified-op-name", {"name": "World"})
+            assert call_result.structuredContent == {"message": "Hello, World"}
 
 
 @pytest.mark.asyncio

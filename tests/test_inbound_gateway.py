@@ -66,8 +66,8 @@ async def test_inbound_gateway() -> None:
 
 
 async def call_tool(
-    read_stream: anyio.streams.memory.MemoryObjectReceiveStream[SessionMessage],
-    write_stream: anyio.streams.memory.MemoryObjectSendStream[SessionMessage],
+    read_stream: anyio.streams.memory.MemoryObjectReceiveStream[SessionMessage],  # pyright: ignore[reportAttributeAccessIssue]
+    write_stream: anyio.streams.memory.MemoryObjectSendStream[SessionMessage],  # pyright: ignore[reportAttributeAccessIssue]
 ) -> None:
     """Test MCP client connecting via memory streams and calling tools."""
     async with ClientSession(read_stream, write_stream) as session:
@@ -79,8 +79,8 @@ async def call_tool(
         print(f"Available tools: {[tool.name for tool in list_tools_result.tools]}")
 
         assert len(list_tools_result.tools) == 2
-        assert list_tools_result.tools[0].name == "modified-service-name/modified-op-name"
-        assert list_tools_result.tools[1].name == "modified-service-name/op2"
+        assert list_tools_result.tools[0].name == "modified-service-name_modified-op-name"
+        assert list_tools_result.tools[1].name == "modified-service-name_op2"
 
-        call_result = await session.call_tool("modified-service-name/modified-op-name", {"name": "World"})
+        call_result = await session.call_tool("modified-service-name_modified-op-name", {"name": "World"})
         assert call_result.structuredContent == {"message": "Hello, World"}
