@@ -6,7 +6,7 @@ on:
     branches: [ main ]
 
 jobs:
-  lint-test-docs:
+  lint-test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
