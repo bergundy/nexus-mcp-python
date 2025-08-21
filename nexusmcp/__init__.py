@@ -1,9 +1,10 @@
-from temporalio import workflow
+import temporalio.workflow
 
-with workflow.unsafe.imports_passed_through():
+with temporalio.workflow.unsafe.imports_passed_through():
+    from nexusmcp import workflow
+
     from .inbound_gateway import InboundGateway
     from .service import MCPService
     from .service_handler import MCPServiceHandler, exclude
-    from .workflow_transport import WorkflowTransport
 
-__all__ = ["MCPService", "MCPServiceHandler", "InboundGateway", "exclude", "WorkflowTransport"]
+__all__ = ["MCPService", "MCPServiceHandler", "InboundGateway", "exclude", "workflow"]
